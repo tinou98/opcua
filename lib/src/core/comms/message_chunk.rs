@@ -263,7 +263,7 @@ impl MessageChunk {
                 .0;
 
             // signature length
-            data_size += signature_size;
+            data_size += signature_size + 10; // XXX: Be safer by adding a margin
 
             // Message size is what's left
             Ok(message_size - data_size)
