@@ -1253,10 +1253,25 @@ impl SecureChannel {
                 let verification_key = self.verification_key();
                 self.security_policy.symmetric_verify_signature(
                     verification_key,
-                    &dst[signed_range],
+                    &dst[signed_range.clone()],
                     &dst[signature_range],
                 )?;
-                Ok(encrypted_range.end)
+
+                let raw_padding = dst[signed_range.end - 1] as usize;
+                if self.security_policy.symmetric_signature_size() > 256 {
+                    /*
+                    padding <<= 8;
+                    padding += src[signature_range.end - 3] as usize + 1;
+                    */
+                    todo!()
+                }
+                let padding = raw_padding + 1;
+
+                dst[signed_range.end - padding..signed_range.end]
+                    .iter()
+                    .for_each(|v| assert_eq!(*v, raw_padding as u8));
+
+                Ok(encrypted_range.end - padding)
             }
             MessageSecurityMode::Invalid => {
                 // Use the security policy to decrypt the block using the token
